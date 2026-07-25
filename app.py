@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import Response
 from rembg import remove
 from PIL import Image
-import io
+from io import BytesIO
 
 app = FastAPI()
 
@@ -15,12 +15,14 @@ async def remove_background(file: UploadFile = File(...)):
 
     image_bytes = await file.read()
 
-    input_image = Image.open(io.BytesIO(image_bytes))
+    input_image = Image.open(
+        BytesIO(image_bytes)
+    )
 
-    output_image = remove(input_image)
+    output = remove(input_image)
 
-    output_bytes = io.BytesIO()
-    output_image.save(output_bytes, format="PNG")
+    output_bytes = BytesIO()
+    output.save(output_bytes, format="PNG")
 
     return Response(
         content=output_bytes.getvalue(),
