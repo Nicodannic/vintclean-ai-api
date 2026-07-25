@@ -10,21 +10,43 @@ app = FastAPI()
 def home():
     return {"status": "VintClean AI API is running 🚀"}
 
+
 @app.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
 
-    image_bytes = await file.read()
+    try:
+        print("Image reçue")
 
-    input_image = Image.open(
-        BytesIO(image_bytes)
-    )
+        image_bytes = await file.read()
 
-    output = remove(input_image)
+        print("Taille image :", len(image_bytes))
 
-    output_bytes = BytesIO()
-    output.save(output_bytes, format="PNG")
+        input_image = Image.open(
+            BytesIO(image_bytes)
+        )
 
-    return Response(
-        content=output_bytes.getvalue(),
-        media_type="image/png"
-    )
+        print("Image ouverte")
+
+        output = remove(input_image)
+
+        print("Fond supprimé")
+
+        output_bytes = BytesIO()
+
+        output.save(
+            output_bytes,
+            format="PNG"
+        )
+
+        print("PNG créé")
+
+        return Response(
+            content=output_bytes.getvalue(),
+            media_type="image/png"
+        )
+
+    except Exception as e:
+        print("ERREUR :", e)
+        return {
+            "error": str(e)
+        }
