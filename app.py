@@ -1,52 +1,43 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import Response
-from rembg import remove
+from rembg import remove, new_session
 from PIL import Image
 from io import BytesIO
 
 app = FastAPI()
 
+session = new_session("u2netp")
+
+
 @app.get("/")
 def home():
-    return {"status": "VintClean AI API is running 🚀"}
+    return {
+        "status": "VintClean AI API is running 🚀"
+    }
 
 
 @app.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
 
-    try:
-        print("Image reçue")
+    image_bytes = await file.read()
 
-        image_bytes = await file.read()
+    image = Image.open(
+        BytesIO(image_bytes)
+    )
 
-        print("Taille image :", len(image_bytes))
+    result = remove(
+        image,
+        session=session
+    )
 
-        input_image = Image.open(
-            BytesIO(image_bytes)
-        )
+    output = BytesIO()
 
-        print("Image ouverte")
+    result.save(
+        output,
+        format="PNG"
+    )
 
-        output = remove(input_image)
-
-        print("Fond supprimé")
-
-        output_bytes = BytesIO()
-
-        output.save(
-            output_bytes,
-            format="PNG"
-        )
-
-        print("PNG créé")
-
-        return Response(
-            content=output_bytes.getvalue(),
-            media_type="image/png"
-        )
-
-    except Exception as e:
-        print("ERREUR :", e)
-        return {
-            "error": str(e)
-        }
+    return Response(
+        content=output.getvalue(),
+        media_type="image/png"
+    )
