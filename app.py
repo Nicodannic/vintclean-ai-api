@@ -1,12 +1,10 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import Response
-from rembg import remove, new_session
+from rembg import remove
 from PIL import Image
 from io import BytesIO
 
 app = FastAPI()
-
-session = new_session("u2netp")
 
 
 @app.get("/")
@@ -19,25 +17,40 @@ def home():
 @app.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
 
-    image_bytes = await file.read()
+    try:
+        print("Image reçue")
 
-    image = Image.open(
-        BytesIO(image_bytes)
-    )
+        image_bytes = await file.read()
 
-    result = remove(
-        image,
-        session=session
-    )
+        print("Taille :", len(image_bytes))
 
-    output = BytesIO()
+        image = Image.open(
+            BytesIO(image_bytes)
+        )
 
-    result.save(
-        output,
-        format="PNG"
-    )
+        print("Image ouverte")
 
-    return Response(
-        content=output.getvalue(),
-        media_type="image/png"
-    )
+        result = remove(image)
+
+        print("Fond supprimé")
+
+        output = BytesIO()
+
+        result.save(
+            output,
+            format="PNG"
+        )
+
+        print("PNG créé")
+
+        return Response(
+            content=output.getvalue(),
+            media_type="image/png"
+        )
+
+    except Exception as e:
+        print("ERREUR :", e)
+
+        return {
+            "error": str(e)
+        }
