@@ -6,7 +6,7 @@ from io import BytesIO
 
 app = FastAPI()
 
-session = new_session("u2netp")
+session = None
 
 
 @app.get("/")
@@ -19,8 +19,15 @@ def home():
 @app.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
 
+    global session
+
     try:
         print("Image reçue")
+
+        if session is None:
+            print("Chargement modèle u2netp...")
+            session = new_session("u2netp")
+            print("Modèle chargé")
 
         image_bytes = await file.read()
 
