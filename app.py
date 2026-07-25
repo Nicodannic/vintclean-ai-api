@@ -19,31 +19,42 @@ def home():
 @app.post("/remove-background")
 async def remove_background(file: UploadFile = File(...)):
 
-    print("Image reçue")
+    try:
+        print("Image reçue")
 
-    image_bytes = await file.read()
+        image_bytes = await file.read()
 
-    image = Image.open(
-        BytesIO(image_bytes)
-    )
+        print("Taille :", len(image_bytes))
 
-    print("Traitement avec u2netp")
+        image = Image.open(
+            BytesIO(image_bytes)
+        )
 
-    result = remove(
-        image,
-        session=session
-    )
+        print("Image ouverte")
 
-    output = BytesIO()
+        result = remove(
+            image,
+            session=session
+        )
 
-    result.save(
-        output,
-        format="PNG"
-    )
+        print("Fond supprimé")
 
-    print("Terminé")
+        output = BytesIO()
 
-    return Response(
-        content=output.getvalue(),
-        media_type="image/png"
-    )
+        result.save(
+            output,
+            format="PNG"
+        )
+
+        print("PNG créé")
+
+        return Response(
+            content=output.getvalue(),
+            media_type="image/png"
+        )
+
+    except Exception as e:
+        print("ERREUR :", e)
+        return {
+            "error": str(e)
+        }
